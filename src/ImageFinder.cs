@@ -34,7 +34,7 @@ namespace Arknights_PC_Recruit_Helper.src
             }
         }
 
-        public static List<string> getCurrentTags(string currentScreen)
+        public static List<string> getCurrentTags(string currentScreen, string tagsPath)
         {
             string tagPath;
             List<string> currentTags = new List<string>();
@@ -45,7 +45,7 @@ namespace Arknights_PC_Recruit_Helper.src
             foreach (string tag in RecruitTags.allTags)
             {
                 cycleCount++;
-                tagPath = $"../../../res/images/{tag}.png";
+                tagPath = $"{tagsPath}{tag}.png";
                 string currentPath = Path.GetFullPath(currentScreen);
                 string path = Path.GetFullPath(tagPath);
                 try

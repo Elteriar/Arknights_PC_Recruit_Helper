@@ -5,7 +5,8 @@ namespace Arknights_PC_Recruit_Helper
 {
     public partial class Form1 : Form
     {
-        private static string screenshotPath = "../../../res/screenshot/";
+        private static string screenshotPath = "../res/screenshot/";
+        private static string tagsPath = "../res/tags/";
         private static string currentPicture = "";
         public Form1()
         {
@@ -28,7 +29,7 @@ namespace Arknights_PC_Recruit_Helper
         {
             Scan.Enabled = false;
 
-            var currentTags = ImageFinder.getCurrentTags(currentPicture);
+            var currentTags = ImageFinder.getCurrentTags(currentPicture, tagsPath);
             string resultTagsCombinations = RecruitTags.getBestTags(currentTags);
 
             //Делаем вывод результата
@@ -36,7 +37,7 @@ namespace Arknights_PC_Recruit_Helper
                 resultTagsCombinations = "Only 3★";
 
             listBox1.Items.Clear();
-            listBox1.Items.Add($"Найдено {currentTags.Count} тегов:");
+            listBox1.Items.Add($"{currentTags.Count} tags found:");
             //если не распознал все теги - подстветить listboxs
             if (currentTags.Count < RecruitTags.maxTagsOnScreen)
                 listBox1.BackColor = Color.Red;
