@@ -1,4 +1,6 @@
 ﻿
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+
 namespace Arknights_PC_Recruit_Helper.src
 {
     public class RecruitTags
@@ -9,9 +11,16 @@ namespace Arknights_PC_Recruit_Helper.src
             "Starter", "Senior Operator", "Top Operator",
             "AoE", "Crowd Control", "DP-Recovery", "Debuff", "Defense", "DPS", "Elemental", "Fast-Redeploy", "Healing", "Nuker",
             "Robot", "Shift", "Slow", "Soar", "Summon", "Support", "Survival"};
-        //Теги Elemental,Robot,Soar не ведут к картинке. Надо бы найти их
+        //Теги Elemental,Soar не ведут к картинке. Надо бы найти их
 
         public static int maxTagsOnScreen = 5;
+
+        //6★ 1 tag
+        public static string topTag = "Top Operator";
+
+        //5★ 1 tag
+        public static string seniorTag = "Senior Operator";
+
 
         //5★ 2 tags
         public static Dictionary<string, string[]> combofiveStarsTags = new Dictionary<string, string[]>()
@@ -50,6 +59,13 @@ namespace Arknights_PC_Recruit_Helper.src
         public static string getBestTags(List<string> currentTags)
         {
             string resultTags = "";
+
+            //6★ 1 tag search
+            if(currentTags.Contains(topTag))
+                resultTags += topTag + " 6★ \n";
+            //5★ 1 tag search
+            if (currentTags.Contains(seniorTag))
+                resultTags += seniorTag + " 5★ \n";
 
             //5★ 2 tags search
             foreach (string tag in currentTags)
