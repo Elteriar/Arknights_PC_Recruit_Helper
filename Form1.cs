@@ -8,14 +8,13 @@ namespace Arknights_PC_Recruit_Helper
         private static string screenshotPath = "../res/screenshot/";
         private static string tagsPath = "../res/tags/";
         private static string currentPicture = "";
+
         public Form1()
-        {
+        {            
             InitializeComponent();
-
-            this.TopLevel = true;
-            this.TopMost = true;
+            TopMost = true;
+            TopLevel = true;
             Scan.Enabled = false;
-
             ImageFinder.InitializeTagsCache(tagsPath);
         }
 
