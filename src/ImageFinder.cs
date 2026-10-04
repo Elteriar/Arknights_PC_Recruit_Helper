@@ -1,8 +1,6 @@
 ﻿using OpenCvSharp;
 using OpenCvSharp.Extensions;
-using System.Diagnostics;
 using System.Collections.Concurrent;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Arknights_PC_Recruit_Helper.src
 {
@@ -21,7 +19,7 @@ namespace Arknights_PC_Recruit_Helper.src
 
                 if(File.Exists(tagPath))
                 {
-                    _tagsCache[tag] = new Mat(tagPath);
+                    _tagsCache[tag] = new Mat(tagPath, ImreadModes.Grayscale);
                 }                 
             }
         }
@@ -41,7 +39,6 @@ namespace Arknights_PC_Recruit_Helper.src
             using (Mat result = new Mat())
             {
                 // Выполняем поиск по шаблону. 
-                // CcoeffNormed (нормализованный коэффициент корреляции) — наиболее точный метод для скриншотов
                 Cv2.MatchTemplate(matB, matA, result, TemplateMatchModes.CCoeffNormed);
 
                 // Находим координаты с максимальным совпадением
@@ -60,15 +57,15 @@ namespace Arknights_PC_Recruit_Helper.src
             // Используем ConcurrentBag для безопасного добавления из разных потоков
             var foundTags = new ConcurrentBag<string>();
             using (Bitmap bitmapB = new Bitmap(currentScreen))
-            using (Mat matB = bitmapB.ToMat())
+            using (Mat colorMatB = bitmapB.ToMat()) 
+            using (Mat matB = new ())
             {
-                // Параллельный обход всех тегов (задействует все ядра CPU)
+                Cv2.CvtColor(colorMatB, matB, ColorConversionCodes.BGR2GRAY);
                 Parallel.ForEach(RecruitTags.allTags, (tag, state) =>
                 {
-                    // Проверяем, не нашли ли мы уже максимум тегов на экране
                     if (foundTags.Count >= RecruitTags.maxTagsOnScreen)
                     {
-                        state.Stop(); // Останавливаем остальные потоки
+                        state.Stop(); 
                         return;
                     }
 
@@ -81,7 +78,7 @@ namespace Arknights_PC_Recruit_Helper.src
                     }
 
                 });
-                return [..foundTags];
+                return [.. foundTags];
             }
         }
     }
