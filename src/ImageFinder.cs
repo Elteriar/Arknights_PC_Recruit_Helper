@@ -1,6 +1,7 @@
 ﻿using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Arknights_PC_Recruit_Helper.src
@@ -35,59 +36,52 @@ namespace Arknights_PC_Recruit_Helper.src
             _tagsCache.Clear();
         }
 
-        public static bool FindSubImage(Mat matB, string tag, double threshold = 0.90)
+        public static bool FindSubImage(Mat matB, Mat matA, double threshold = 0.90)
         {
             using (Mat result = new Mat())
             {
                 // Выполняем поиск по шаблону. 
                 // CcoeffNormed (нормализованный коэффициент корреляции) — наиболее точный метод для скриншотов
-                Cv2.MatchTemplate(matB, _tagsCache[tag], result, TemplateMatchModes.CCoeffNormed);
+                Cv2.MatchTemplate(matB, matA, result, TemplateMatchModes.CCoeffNormed);
 
                 // Находим координаты с максимальным совпадением
-                Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
+                Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out _);
 
                 // Проверяем, превышает ли совпадение заданный порог (0.9 = 90% сходства)
-                if (maxVal >= threshold)
-                {                    
-                    return true;// Возвращаем верхнюю левую точку найденного скриншота А внутри Б: new System.Drawing.Point(maxLoc.X, maxLoc.Y);
-                }
-                else
-                    return false;
+                return maxVal >= threshold;
             }
         }
 
         public static List<string> GetCurrentTags(string currentScreen, string tagsPath)
         {
-            string tagPath;
-            List<string> currentTags = new List<string>();
-            int cycleCount = 0;
+            // Гарантируем, что кэш инициализирован
+            InitializeTagsCache(tagsPath);
+
+            // Используем ConcurrentBag для безопасного добавления из разных потоков
+            var foundTags = new ConcurrentBag<string>();
             using (Bitmap bitmapB = new Bitmap(currentScreen))
             using (Mat matB = bitmapB.ToMat())
             {
-                foreach (string tag in RecruitTags.allTags)
+                // Параллельный обход всех тегов (задействует все ядра CPU)
+                Parallel.ForEach(RecruitTags.allTags, (tag, state) =>
                 {
-                    cycleCount++;
-                    tagPath = Path.Combine(tagsPath, $"{tag}.png");
-
-                    try
+                    // Проверяем, не нашли ли мы уже максимум тегов на экране
+                    if (foundTags.Count >= RecruitTags.maxTagsOnScreen)
                     {
-                        if (ImageFinder.FindSubImage(matB, tag))
-                        {
-                            currentTags.Add(tag);
-                        }
+                        state.Stop(); // Останавливаем остальные потоки
+                        return;
+                    }
 
-                        if (currentTags.Count == RecruitTags.maxTagsOnScreen)
+                    if (_tagsCache.TryGetValue(tag, out Mat? matA) && (matA is not null))
+                    {
+                        if (FindSubImage(matB, matA))
                         {
-                            break;
+                            foundTags.Add(tag);
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        Debug.Print($"{ex.Message} проверь {tag}.png");
-                    }
-                }
 
-                return currentTags;
+                });
+                return [..foundTags];
             }
         }
     }
