@@ -35,7 +35,7 @@ namespace Arknights_PC_Recruit_Helper.src
             _tagsCache.Clear();
         }
 
-        public static System.Drawing.Point? FindSubImage(Mat matB, string tag, double threshold = 0.90)
+        public static bool FindSubImage(Mat matB, string tag, double threshold = 0.90)
         {
             using (Mat result = new Mat())
             {
@@ -48,12 +48,11 @@ namespace Arknights_PC_Recruit_Helper.src
 
                 // Проверяем, превышает ли совпадение заданный порог (0.9 = 90% сходства)
                 if (maxVal >= threshold)
-                {
-                    // Возвращаем верхнюю левую точку найденного скриншота А внутри Б
-                    return new System.Drawing.Point(maxLoc.X, maxLoc.Y);
+                {                    
+                    return true;// Возвращаем верхнюю левую точку найденного скриншота А внутри Б: new System.Drawing.Point(maxLoc.X, maxLoc.Y);
                 }
                 else
-                    return null;
+                    return false;
             }
         }
 
@@ -72,8 +71,7 @@ namespace Arknights_PC_Recruit_Helper.src
 
                     try
                     {
-                        System.Drawing.Point? coordinates = ImageFinder.FindSubImage(matB, tag);
-                        if (coordinates.HasValue)
+                        if (ImageFinder.FindSubImage(matB, tag))
                         {
                             currentTags.Add(tag);
                         }
