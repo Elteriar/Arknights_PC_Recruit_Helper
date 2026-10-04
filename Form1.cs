@@ -69,8 +69,8 @@ namespace Arknights_PC_Recruit_Helper
                     g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
                 }
 
-                // сохраняем в файл с форматом Png
-                currentPicture = screenshotPath + DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss") + ".png";
+                // сохраняем в файл с форматом jpg
+                currentPicture = screenshotPath + DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss") + ".jpg";
                 bitmap.Save(currentPicture, ImageFormat.Jpeg);
                 bitmap.Dispose();
             }

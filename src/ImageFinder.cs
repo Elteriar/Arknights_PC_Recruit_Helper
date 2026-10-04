@@ -46,8 +46,7 @@ namespace Arknights_PC_Recruit_Helper.src
             {
                 cycleCount++;
                 tagPath = $"{tagsPath}{tag}.png";
-                string currentPath = Path.GetFullPath(currentScreen);
-                string path = Path.GetFullPath(tagPath);
+
                 try
                 {
                     bitmapA = new Bitmap(tagPath); // Что искать
