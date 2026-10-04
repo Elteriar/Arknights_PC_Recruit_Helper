@@ -14,8 +14,9 @@ namespace Arknights_PC_Recruit_Helper
 
             this.TopLevel = true;
             this.TopMost = true;
-
             Scan.Enabled = false;
+
+            ImageFinder.InitializeTagsCache(tagsPath);
         }
 
         private void Screenshot_Click(object sender, EventArgs e)
@@ -29,8 +30,8 @@ namespace Arknights_PC_Recruit_Helper
         {
             Scan.Enabled = false;
 
-            var currentTags = ImageFinder.getCurrentTags(currentPicture, tagsPath);
-            string resultTagsCombinations = RecruitTags.getBestTags(currentTags);
+            var currentTags = ImageFinder.GetCurrentTags(currentPicture, tagsPath);
+            string resultTagsCombinations = RecruitTags.GetBestTags(currentTags);
 
             //Делаем вывод результата
             if (resultTagsCombinations == "")
@@ -70,7 +71,7 @@ namespace Arknights_PC_Recruit_Helper
                 }
 
                 // сохраняем в файл с форматом jpg
-                currentPicture = screenshotPath + DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss") + ".jpg";
+                currentPicture = Path.Combine(screenshotPath, $"{DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss")}.jpg");
                 bitmap.Save(currentPicture, ImageFormat.Jpeg);
                 bitmap.Dispose();
             }
@@ -79,6 +80,7 @@ namespace Arknights_PC_Recruit_Helper
         //по закрытию приложения удалить все файлы скриншотов
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            ImageFinder.DisposeCache();
             foreach (string file in Directory.GetFiles(screenshotPath))
             {
                 File.Delete(file);

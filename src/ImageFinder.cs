@@ -7,20 +7,43 @@ namespace Arknights_PC_Recruit_Helper.src
 {
     public class ImageFinder
     {
+        private static Dictionary<string, Mat> _tagsCache = [];
 
-        public static System.Drawing.Point? FindSubImage(Bitmap screenB, Bitmap screenA, double threshold = 0.90)
+        public static void InitializeTagsCache(string tagsPath)
         {
-            // 1. Конвертируем Bitmap из System.Drawing в матрицы Mat для OpenCV
-            using (Mat matB = screenB.ToMat())
-            using (Mat matA = screenA.ToMat())
-            // 2. Создаем матрицу для сохранения результатов сравнения
+            if (_tagsCache.Count > 0) return;
+            string tagPath;
+            
+            foreach (string tag in RecruitTags.allTags)
+            {
+                tagPath = Path.Combine(tagsPath, $"{tag}.png");
+
+                if(File.Exists(tagPath))
+                {
+                    _tagsCache[tag] = new Mat(tagPath);
+                }                 
+            }
+        }
+
+        public static void DisposeCache()
+        {
+            if (_tagsCache.Count > 0) return;
+            foreach (var tag in _tagsCache)
+            {
+                tag.Value?.Dispose();
+            }
+            _tagsCache.Clear();
+        }
+
+        public static System.Drawing.Point? FindSubImage(Mat matB, string tag, double threshold = 0.90)
+        {
             using (Mat result = new Mat())
             {
-                // 3. Выполняем поиск по шаблону. 
+                // Выполняем поиск по шаблону. 
                 // CcoeffNormed (нормализованный коэффициент корреляции) — наиболее точный метод для скриншотов
-                Cv2.MatchTemplate(matB, matA, result, TemplateMatchModes.CCoeffNormed);
+                Cv2.MatchTemplate(matB, _tagsCache[tag], result, TemplateMatchModes.CCoeffNormed);
 
-                // 4. Находим координаты с максимальным совпадением
+                // Находим координаты с максимальным совпадением
                 Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
 
                 // Проверяем, превышает ли совпадение заданный порог (0.9 = 90% сходства)
@@ -34,43 +57,40 @@ namespace Arknights_PC_Recruit_Helper.src
             }
         }
 
-        public static List<string> getCurrentTags(string currentScreen, string tagsPath)
+        public static List<string> GetCurrentTags(string currentScreen, string tagsPath)
         {
             string tagPath;
             List<string> currentTags = new List<string>();
             int cycleCount = 0;
-            Bitmap bitmapB = new Bitmap(currentScreen); // Где искать
-            Bitmap bitmapA;
-
-            foreach (string tag in RecruitTags.allTags)
+            using (Bitmap bitmapB = new Bitmap(currentScreen))
+            using (Mat matB = bitmapB.ToMat())
             {
-                cycleCount++;
-                tagPath = $"{tagsPath}{tag}.png";
-
-                try
+                foreach (string tag in RecruitTags.allTags)
                 {
-                    bitmapA = new Bitmap(tagPath); // Что искать
-                    System.Drawing.Point? coordinates = ImageFinder.FindSubImage(bitmapB, bitmapA);
-                    if (coordinates.HasValue)
+                    cycleCount++;
+                    tagPath = Path.Combine(tagsPath, $"{tag}.png");
+
+                    try
                     {
-                        currentTags.Add(tag);                        
+                        System.Drawing.Point? coordinates = ImageFinder.FindSubImage(matB, tag);
+                        if (coordinates.HasValue)
+                        {
+                            currentTags.Add(tag);
+                        }
+
+                        if (currentTags.Count == RecruitTags.maxTagsOnScreen)
+                        {
+                            break;
+                        }
                     }
-                    
-                    //освобождаем данные bitmap чтобы можно было удалять скрины 
-                    if ((currentTags.Count == RecruitTags.maxTagsOnScreen) || (cycleCount == RecruitTags.allTags.Length))
+                    catch (Exception ex)
                     {
-                        bitmapB.Dispose();
-                        bitmapA.Dispose();
-                        break;
-                    }                    
+                        Debug.Print($"{ex.Message} проверь {tag}.png");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    Debug.Print($"{ex.Message} проверь {tag}.png");
-                }
-            }
 
-            return currentTags;
+                return currentTags;
+            }
         }
     }
 }

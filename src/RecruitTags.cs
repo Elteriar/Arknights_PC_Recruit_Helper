@@ -56,7 +56,7 @@ namespace Arknights_PC_Recruit_Helper.src
             { "Ranged",  [ "DP-Recovery", "Vanguard" ] }
         };
 
-        public static string getBestTags(List<string> currentTags)
+        public static string GetBestTags(List<string> currentTags)
         {
             string resultTags = "";
 
