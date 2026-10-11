@@ -11,7 +11,6 @@ namespace Arknights_PC_Recruit_Helper.src
             "Starter", "Senior Operator", "Top Operator",
             "AoE", "Crowd Control", "DP-Recovery", "Debuff", "Defense", "DPS", "Elemental", "Fast-Redeploy", "Healing", "Nuker",
             "Robot", "Shift", "Slow", "Soar", "Summon", "Support", "Survival"};
-        //Теги Elemental,Soar не ведут к картинке. Надо бы найти их
 
         public static int maxTagsOnScreen = 5;
 

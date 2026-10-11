@@ -9,7 +9,7 @@ namespace Arknights_PC_Recruit_Helper
         private static string tagsPath = "../res/tags/";
         private static string currentPicture = "";
 
-        public Form1()
+        public Form1() 
         {            
             InitializeComponent();
             TopMost = true;
@@ -32,13 +32,11 @@ namespace Arknights_PC_Recruit_Helper
             var currentTags = ImageFinder.GetCurrentTags(currentPicture, tagsPath);
             string resultTagsCombinations = RecruitTags.GetBestTags(currentTags);
 
-            //Делаем вывод результата
             if (resultTagsCombinations == "")
                 resultTagsCombinations = "Only 3★";
 
             listBox1.Items.Clear();
             listBox1.Items.Add($"{currentTags.Count} tags found:");
-            //если не распознал все теги - подстветить listboxs
             if (currentTags.Count < RecruitTags.maxTagsOnScreen)
                 listBox1.BackColor = Color.Red;
 
@@ -53,30 +51,18 @@ namespace Arknights_PC_Recruit_Helper
             }
         }
 
-        // метод, который делает скриншот и записывает его в файл
         private static void MakeScreenshot()
         {
-            // получаем размеры окна рабочего стола
             Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using var bitmap = new Bitmap(bounds.Width, bounds.Height);
+            using var g = Graphics.FromImage(bitmap);
 
-            // создаем пустое изображения размером с экран устройства
-            using (var bitmap = new Bitmap(bounds.Width, bounds.Height))
-            {
-                // создаем объект на котором можно рисовать
-                using (var g = Graphics.FromImage(bitmap))
-                {
-                    // перерисовываем экран на наш графический объект
-                    g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
-                }
-
-                // сохраняем в файл с форматом jpg
-                currentPicture = Path.Combine(screenshotPath, $"{DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss")}.jpg");
-                bitmap.Save(currentPicture, ImageFormat.Jpeg);
-                bitmap.Dispose();
-            }
+            g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+            currentPicture = Path.Combine(screenshotPath, $"{DateTime.Now.ToString("yyyy-MM-dd_HH\\hmm_ss")}.jpg");
+            bitmap.Save(currentPicture, ImageFormat.Jpeg);
+            bitmap.Dispose();            
         }
 
-        //по закрытию приложения удалить все файлы скриншотов
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             ImageFinder.DisposeCache();
